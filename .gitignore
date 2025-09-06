@@ -1,0 +1,22 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.env
+.env.*
+
+# Logs / secrets
+logs/
+*.jsonl
+nginx.htpasswd
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker artifacts
+*.pid

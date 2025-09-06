@@ -1,0 +1,20 @@
+﻿@app.route("/helpdesk", methods=["POST"])
+def helpdesk():
+    import time, json
+    data = request.get_json(force=True)
+    q = data.get("q", "")
+    ip = request.remote_addr or "?"
+
+    # call LLM
+    answer = LLM.ask(q)
+
+    # log with the actual answer
+    with open("/logs/helpdesk.jsonl", "a", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "ts": time.time(),
+            "ip": ip,
+            "q": q,
+            "ans": answer
+        }) + "\n")
+
+    return jsonify({"answer": answer})

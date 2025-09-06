@@ -1,0 +1,50 @@
+﻿import os, json, time, pathlib
+from flask import Flask, request, jsonify
+from llm_adapter import LLM
+
+app = Flask(__name__)
+
+# Ensure /logs exists (works whether or not a volume is mounted)
+pathlib.Path("/logs").mkdir(parents=True, exist_ok=True)
+
+@app.route("/")
+def home():
+    return "<h3>AI Honeypot</h3><p>OK</p>"
+
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
+
+@app.route("/diag2")
+def diag2():
+    # Show useful diagnostics
+    return jsonify({
+        "backend": os.environ.get("LLM_BACKEND", "ollama"),
+        "has_openai_key": bool(os.environ.get("OPENAI_API_KEY")),
+        "ollama_host": os.environ.get("OLLAMA_HOST"),
+        "ollama_model": os.environ.get("OLLAMA_MODEL"),
+        "openai_model": os.environ.get("OPENAI_MODEL"),
+    })
+
+@app.route("/helpdesk", methods=["POST"])
+def helpdesk():
+    data = request.get_json(force=True) or {}
+    q = data.get("q", "")
+    ip = request.remote_addr or "?"
+
+    # Call the LLM
+    answer = LLM.ask(q)
+
+    # Log question + answer to JSONL
+    with open("/logs/helpdesk.jsonl", "a", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "ts": time.time(),
+            "ip": ip,
+            "q": q,
+            "ans": answer
+        }) + "\n")
+
+    return jsonify({"answer": answer})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8088)))
