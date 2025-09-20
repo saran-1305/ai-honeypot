@@ -1,0 +1,5 @@
+﻿services:
+  cowrie:
+    volumes:
+      - ./cowrie-logs:/cowrie/var/log/cowrie
+      - ./cowrie-data:/cowrie/var/lib/cowrie

@@ -1,0 +1,12 @@
+﻿services:
+  cowrie:
+    image: cowrie/cowrie:latest
+    container_name: cowrie
+    restart: unless-stopped
+    ports:
+      - "2222:2222"          # host:container
+    volumes:
+      - ./cowrie-logs:/cowrie/var/log/cowrie
+      - ./cowrie-data:/cowrie/var/lib/cowrie
+    environment:
+      - COWRIE_TTYLOG=1

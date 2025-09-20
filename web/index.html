@@ -1,0 +1,169 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Employee Helpdesk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b1220; --card:#121a2a; --muted:#9fb0d1; --fg:#e7eefc; --accent:#66e3a4; --danger:#ff6b6b;
+      --btn:#2b61ff; --btnh:#234ed1; --input:#1a2235; --border:#21304d;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--fg)}
+    .wrap{max-width:900px;margin:40px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+    h1{margin:0 0 8px;font-weight:700}
+    p.lead{margin:0 0 16px;color:var(--muted)}
+    label{display:block;font-size:14px;color:var(--muted);margin:14px 0 6px}
+    input,textarea{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+      background:var(--input);color:var(--fg);outline:none
+    }
+    textarea{min-height:120px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end}
+    button{
+      background:var(--btn);border:none;color:#fff;padding:12px 16px;border-radius:12px;
+      cursor:pointer;font-weight:600
+    }
+    button:hover{background:var(--btnh)}
+    .muted{color:var(--muted);font-size:13px}
+    .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;border-radius:999px;padding:6px 10px;border:1px solid var(--border)}
+    .ok{background:rgba(102,227,164,.12);color:var(--accent);border-color:rgba(102,227,164,.35)}
+    .bad{background:rgba(255,107,107,.12);color:var(--danger);border-color:rgba(255,107,107,.35)}
+    .answer{background:#0f172a;border:1px solid var(--border);border-radius:12px;padding:14px;min-height:60px;white-space:pre-wrap}
+    .linkrow{display:flex;gap:12px;flex-wrap:wrap}
+    .linkrow a{color:var(--muted);text-decoration:none}
+    .linkrow a:hover{color:var(--fg);text-decoration:underline}
+    .right{display:flex;gap:10px;align-items:center}
+    .hint{font-size:12px;color:var(--muted)}
+    .pwrow{display:grid;grid-template-columns:1fr auto;gap:10px}
+    .checkbox{display:flex;gap:8px;align-items:center;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+        <div>
+          <h1>Employee Helpdesk</h1>
+          <p class="lead">Log in with proxy credentials, ask a question, get an answer. Requests are logged.</p>
+        </div>
+        <div id="authBadge" class="badge bad">Not authenticated</div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Username</label>
+          <input id="u" placeholder="admin" autocomplete="username" />
+          <div class="checkbox"><input id="rememberU" type="checkbox"><label for="rememberU" class="hint">Remember username on this device</label></div>
+        </div>
+        <div>
+          <label>Password</label>
+          <div class="pwrow">
+            <input id="p" type="password" placeholder="••••••••" autocomplete="current-password" />
+            <button id="togglePw" type="button" title="Show/Hide">👁️</button>
+          </div>
+        </div>
+      </div>
+
+      <label>Your question</label>
+      <textarea id="q" placeholder="How do I reset my password?">How do I reset my password?</textarea>
+
+      <div class="row3" style="margin-top:10px">
+        <div class="muted">Backend: <span id="health">checking…</span></div>
+        <button id="ask" type="button">Ask helpdesk</button>
+        <button id="clear" type="button" title="Clear">Clear</button>
+      </div>
+
+      <label style="margin-top:16px">Answer</label>
+      <div id="ans" class="answer">…</div>
+
+      <div style="margin-top:14px" class="linkrow muted">
+        <span>Status endpoints:</span>
+        <a href="/health" target="_blank">/health</a>
+        <span>and</span>
+        <a href="/diag2" target="_blank">/diag2</a>
+        <span>• Helpdesk API: POST</span>
+        <a href="/helpdesk" target="_blank">/helpdesk</a>
+        <span>(Basic Auth required)</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = sel => document.querySelector(sel);
+    const u = $('#u'), p = $('#p'), q = $('#q'), ask = $('#ask'), ans = $('#ans');
+    const badge = $('#authBadge'), health = $('#health');
+
+    // Health check (no auth)
+    (async () => {
+      try {
+        const r = await fetch('/health'); const j = await r.json();
+        health.textContent = j?.ok ? 'OK' : 'down';
+        health.style.color = j?.ok ? 'var(--accent)' : 'var(--danger)';
+      } catch { health.textContent = 'down'; health.style.color = 'var(--danger)'; }
+    })();
+
+    // Remember username
+    const REM_KEY = 'hp_u';
+    const remember = $('#rememberU');
+    const savedU = localStorage.getItem(REM_KEY);
+    if (savedU){ u.value = savedU; remember.checked = true; }
+    remember.addEventListener('change', () => {
+      if (remember.checked) localStorage.setItem(REM_KEY, u.value || '');
+      else localStorage.removeItem(REM_KEY);
+    });
+    u.addEventListener('input', () => { if (remember.checked) localStorage.setItem(REM_KEY, u.value || ''); });
+
+    // Show/Hide password
+    $('#togglePw').addEventListener('click', () => { p.type = p.type === 'password' ? 'text' : 'password'; });
+
+    // Helpers
+    const setAuthState = ok => {
+      if (ok){ badge.textContent = 'Logged in as ' + (u.value || 'user'); badge.className = 'badge ok'; }
+      else { badge.textContent = 'Not authenticated'; badge.className = 'badge bad'; }
+    };
+    const basic = (user, pass) => 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
+
+    // Ask
+    ask.addEventListener('click', async () => {
+      ans.textContent = 'Sending...';
+      try{
+        const r = await fetch('/helpdesk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': basic(u.value || '', p.value || '')
+          },
+          body: JSON.stringify({ q: q.value || '' })
+        });
+
+        if (r.status === 401 || r.status === 403){
+          setAuthState(false);
+          ans.textContent = 'Unauthorized. Check username/password for the proxy.';
+          return;
+        }
+        const data = await r.json().catch(()=>null);
+        if (r.ok && data?.answer){
+          setAuthState(true);
+          ans.textContent = data.answer;
+        } else if (data?.error){
+          setAuthState(true);
+          ans.textContent = 'Upstream error: ' + data.error;
+        } else {
+          setAuthState(false);
+          ans.textContent = 'Unexpected response (HTTP ' + r.status + ').';
+        }
+      }catch(e){
+        setAuthState(false);
+        ans.textContent = 'Network error. Is the proxy up on :8080 and the app healthy?';
+      }
+    });
+
+    // Clear
+    $('#clear').addEventListener('click', () => { q.value=''; ans.textContent='…'; });
+  </script>
+</body>
+</html>

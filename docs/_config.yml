@@ -1,0 +1,10 @@
+﻿title: AI Helpdesk Honeypot
+description: Flask API + Ollama + Nginx (Basic Auth). Logs Q&A to JSONL for detection/analysis.
+theme: jekyll-theme-cayman
+exclude:
+  - logs
+  - docker-compose.yml
+  - Dockerfile
+  - nginx.conf
+  - nginx.htpasswd
+  - README.md
