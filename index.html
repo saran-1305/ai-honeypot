@@ -1,0 +1,105 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Honeypot • Cowrie + Docker</title>
+  <style>
+    :root{
+      --bg:#0b1020;--panel:#121a2b;--muted:#9db1d9;--text:#e7eeff;--accent:#6aa3ff;--accent2:#7ef0d4;--border:#223150;
+      --code:#0e1628;--ok:#36d399;--warn:#ffd166;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,PingFang SC,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
+    body{background:radial-gradient(1200px 800px at 80% -10%, #162445 0, transparent 60%),linear-gradient(180deg,#0b1020 0,#0b1020 100%);color:var(--text)}
+    a{color:var(--accent);text-decoration:none} a:hover{opacity:.9}
+    .wrap{max-width:980px;margin:0 auto;padding:48px 20px}
+    .hero{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+    .logo{inline-size:64px;block-size:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;box-shadow:0 10px 30px rgba(106,163,255,.35)}
+    .logo span{font-weight:800;color:#081021}
+    h1{font-size:42px;line-height:1.1;margin:0}
+    p.lead{color:var(--muted);max-width:760px;margin:10px 0 0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:32px 0}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px}
+    .card h3{margin:0 0 10px}
+    .tag{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:#0e1a32;border:1px solid var(--border);color:var(--muted);font-size:13px}
+    .kbd{padding:.2rem .45rem;border:1px solid var(--border);border-radius:6px;background:var(--code);font-family:ui-monospace,Menlo,Consolas,monospace}
+    pre{margin:0;background:var(--code);border:1px solid var(--border);border-radius:14px;padding:14px;overflow:auto}
+    code{font-family:ui-monospace,Menlo,Consolas,monospace;color:#cfe4ff}
+    .section{margin:42px 0}
+    .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0f1830;color:var(--text)}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),#4b7dff);border-color:transparent;color:#071226;box-shadow:0 10px 30px rgba(106,163,255,.35);font-weight:700}
+    .small{color:var(--muted);font-size:14px}
+    footer{margin-top:54px;border-top:1px dashed var(--border);padding-top:18px;color:var(--muted)}
+    .ok{color:var(--ok)} .warn{color:var(--warn)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="logo"><span>AI</span></div>
+      <div>
+        <h1>AI Honeypot (Cowrie + Docker)</h1>
+        <p class="lead">
+          A <strong>fake SSH honeypot</strong> powered by <a href="https://github.com/cowrie/cowrie" target="_blank">Cowrie</a>,
+          containerized with <strong>Docker</strong> to safely capture attacker behavior for research and education.
+        </p>
+        <div class="btns">
+          <a class="btn primary" href="https://github.com/saran-1305/ai-honeypot" target="_blank">⭐ View on GitHub</a>
+          <span class="tag">Port <strong>2222</strong> • JSON logs • Local-first</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section grid">
+      <div class="card">
+        <h3>Features</h3>
+        <ul class="small">
+          <li>✅ Fake SSH server on <span class="kbd">2222</span></li>
+          <li>✅ Captures logins, commands, and file downloads (<code>wget</code>/<code>curl</code>)</li>
+          <li>✅ JSON log output for easy analysis</li>
+          <li>✅ Dockerized — quick setup & teardown</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Quick Start</h3>
+        <pre><code># 1) Clone & enter
+git clone https://github.com/saran-1305/ai-honeypot.git
+cd ai-honeypot
+
+# 2) Start Cowrie
+docker compose -f docker-compose.cowrie.yml up -d
+
+# 3) Connect (enter any password)
+ssh -o StrictHostKeyChecking=no -p 2222 root@127.0.0.1
+
+# 4) Follow logs
+tail -f cowrie-logs/cowrie.json</code></pre>
+      </div>
+      <div class="card">
+        <h3>Example JSON event</h3>
+        <pre><code>{
+  "eventid": "cowrie.session.connect",
+  "src_ip": "192.168.1.10",
+  "username": "root",
+  "password": "admin",
+  "command": "uname -a",
+  "timestamp": "2025-09-20T12:00:00Z"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="section card">
+      <h3>Notes</h3>
+      <p class="small">
+        <span class="ok">For learning & demos.</span> <span class="warn">Do not expose directly to the public internet</span>
+        unless you know what you’re doing. Honeypots attract real attackers—use a lab / cloud sandbox.
+      </p>
+      <p class="small">Author: <a href="https://github.com/saran-1305" target="_blank">saran-1305</a></p>
+    </div>
+
+    <footer class="small">© 2025 AI Honeypot • Cowrie + Docker</footer>
+  </div>
+</body>
+</html>
